@@ -1,7 +1,6 @@
 package zoomeye
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -50,16 +49,13 @@ func NewEnvZoomEyeClient(client *http.Client) *ZoomEyeClient {
 	return NewZoomEyeClient(client, os.Getenv("ZoomEye_API_TOKEN"), "", "")
 }
 
-func (z *ZoomEyeClient) NewRequest(method, path string, params interface{}, payloads io.Reader) (*http.Request, error) {
-}
-
 func (z *ZoomEyeClient) newRequest(method string, u *url.URL, params interface{}, payloads io.Reader) (*http.Request, error) {
 	qs, err := query.Values(params)
 	if err != nil {
 		return nil, err
 	}
 
-	qs.Add("", z.apiKey)
+	qs.Add("API-KEY", z.apiKey)
 	u.RawQuery = qs.Encode()
 
 	req, err := http.NewRequest(method, u.String(), payloads)
@@ -68,12 +64,20 @@ func (z *ZoomEyeClient) newRequest(method string, u *url.URL, params interface{}
 	}
 
 	if payloads != nil {
-		req.Header.Add("", fmt.Sprintf("JWT %s", z.accessToken))
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}
 
 	return req, nil
 }
 
+func (z *ZoomEyeClient) NewRequest(method, path string, params interface{}, payloads io.Reader) (*http.Request, error) {
+	u, err := url.Parse(baseURL + path)
+	if err != nil {
+		return nil, err
+	}
+
+	return z.newRequest(method, u, params, payloads)
+}
+
 func (z *ZoomEyeClient) Login() string {
-	return z.accessToken
 }
