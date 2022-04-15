@@ -1,7 +1,11 @@
 package zoomeye
 
 import (
-	"context"
+	"encoding/json"
+)
+
+var (
+	userInfoPath = "/resources-info"
 )
 
 type ResourcesInfo struct {
@@ -29,5 +33,18 @@ type QuotaInfo struct {
 	RemainTotalQuota string `json:"remain_total_quota"`
 }
 
-func (z *ZoomEyeClient) GetResourcesInfo(ctx context.Context) (*ResourcesInfo, error) {
+func (z *ZoomEyeClient) GetResourcesInfo() *ResourcesInfo {
+	var resourceInfos ResourcesInfo
+
+	content, err := z.NewRequest("GET", userInfoPath, "", nil)
+	if err != nil {
+		return nil
+	}
+
+	err = json.Unmarshal(content, resourceInfos)
+	if err != nil {
+		return nil
+	}
+
+	return &resourceInfos
 }
