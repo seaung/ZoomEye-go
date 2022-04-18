@@ -1,6 +1,7 @@
 package zoomeye
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 
 var (
 	baseURL    = "https://api.zoomeye.org"
-	historyAPI = "https://api.zoomeye.org/both/search?history=true&ip=%s"
+	historyAPI = "/both/search?history=true&ip=%s"
 )
 
 type ZoomEyeClient struct {
@@ -69,4 +70,15 @@ func (z *ZoomEyeClient) NewRequest(method string, path string, params interface{
 	}
 
 	return z.newRequest(method, u, params, payloads)
+}
+
+func (z *ZoomEyeClient) GetHistory(ipaddr string) ([]byte, error) {
+	path := fmt.Sprintf(historyAPI, ipaddr)
+
+	req, err := z.NewRequest("GET", path, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }

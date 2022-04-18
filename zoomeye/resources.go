@@ -36,7 +36,7 @@ type QuotaInfo struct {
 func (z *ZoomEyeClient) GetResourcesInfo() *ResourcesInfo {
 	var resourceInfos ResourcesInfo
 
-	content, err := z.NewRequest("GET", userInfoPath, "", nil)
+	content, err := z.NewRequest("GET", userInfoPath, nil, nil)
 	if err != nil {
 		return nil
 	}
