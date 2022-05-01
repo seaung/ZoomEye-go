@@ -8,7 +8,18 @@ var (
 	userInfoPath = "/resources-info"
 )
 
+/*
+{
+	"code": 60000,
+	"plan": "developer",
+	"resources": {"search": 80, "stats": 100, "interval": "month"},
+	"user_info": {"name": "", "role": "developer", "expired_at": ""},
+	"quota_info": {"remain_free_quota": 0, "remain_pay_quota": 0, "remain_total_quota": 9}
+}
+*/
+
 type ResourcesInfo struct {
+	Code      int       `json:"code"`
 	Plan      string    `json:"plan"`
 	Resources Resources `json:"resources"`
 	UserInfo  UserInfo  `json:"user_info"`
@@ -17,7 +28,7 @@ type ResourcesInfo struct {
 
 type Resources struct {
 	Search   int    `json:"search"`
-	Stats    string `json:"stats"`
+	Stats    int    `json:"stats"`
 	Interval string `json:"interval"`
 }
 
@@ -28,23 +39,23 @@ type UserInfo struct {
 }
 
 type QuotaInfo struct {
-	RemainFreeQuota  string `json:"remain_free_quota"`
-	RemainPayQuota   string `json:"remain_pay_quota"`
-	RemainTotalQuota string `json:"remain_total_quota"`
+	RemainFreeQuota  int `json:"remain_free_quota"`
+	RemainPayQuota   int `json:"remain_pay_quota"`
+	RemainTotalQuota int `json:"remain_total_quota"`
 }
 
-func (z *ZoomEyeClient) GetResourcesInfo() *ResourcesInfo {
+func (z *ZoomEyeClient) GetResourcesInfo() (*ResourcesInfo, error) {
 	var resourceInfos ResourcesInfo
 
 	content, err := z.NewRequest("GET", userInfoPath, nil, nil)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	err = json.Unmarshal(content, resourceInfos)
+	err = json.Unmarshal(content, &resourceInfos)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return &resourceInfos
+	return &resourceInfos, nil
 }

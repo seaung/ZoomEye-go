@@ -29,15 +29,15 @@ func TestRequest(t *testing.T) {
 		t.Logf("Can't get response content : %v\n", err)
 	}
 
-	t.Logf("response content : %v\n", content)
+	t.Logf("response content : %v\n", string(content))
 }
 
 func TestNewRequest(t *testing.T) {
 	z := NewEnvZoomEyeClient()
 
-	content, err := z.NewRequest("GET", "", nil, nil)
+	content, err := z.NewRequest("GET", "/resource-info", nil, nil)
 	if err != nil {
 		t.Logf("Get response from NewRequest method : %v\n", err)
 	}
-	t.Logf("Get response from NewRequest method : %v\n", content)
+	t.Logf("Get response from NewRequest method : %v\n", string(content))
 }

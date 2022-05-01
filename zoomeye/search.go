@@ -11,32 +11,34 @@ var (
 )
 
 type Matchers struct {
-	Matches []interface{} `json:"matches"`
-	facets  string        `json:"facets"`
-	total   string        `json:"total"`
+	Matches []map[string]interface{} `json:"matches"`
+	Facets  string                   `json:"facets"`
+	Total   int                      `json:"total"`
 }
 
-func (z *ZoomEyeClient) HostSearch(query, facets string, page int) *Matchers {
+// ty 为0则为host search; ty 为1则为web search;
+func (z *ZoomEyeClient) Search(query, facets string, page, ty int) (*Matchers, error) {
 	var matches Matchers
 
-	path := fmt.Sprintf(hostSearchPath, query, page, facets)
+	var path string
 
-	req, err := z.NewRequest("GET", path, nil, nil)
-
-	if err != nil {
-		return nil
+	if ty == 0 {
+		path = fmt.Sprintf(hostSearchPath, query, page, facets)
+	} else {
+		path = fmt.Sprintf(webSearchPath, query, page, facets)
 	}
 
-	err = json.Unmarshal(req, matches)
+	resp, err := z.NewRequest("GET", path, nil, nil)
 
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return &matches
-}
+	err = json.Unmarshal(resp, &matches)
 
-func (z *ZoomEyeClient) WebSearch(query, facets string, page int) {
-	path := fmt.Sprintf(webSearchPath, query, page, facets)
-	z.NewRequest("GET", path, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &matches, nil
 }
