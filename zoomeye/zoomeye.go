@@ -23,7 +23,7 @@ type ZoomEyeClient struct {
 }
 
 type Token struct {
-	accessToken string `json:"access_token"`
+	AccessToken string `json:"access_token"`
 }
 
 func NewZoomEyeClient(username, password, accessToken, apikey string) *ZoomEyeClient {
@@ -38,30 +38,36 @@ func NewZoomEyeClient(username, password, accessToken, apikey string) *ZoomEyeCl
 func NewEnvZoomEyeClient() *ZoomEyeClient {
 	return &ZoomEyeClient{
 		apiKey:   os.Getenv("ZOOMEYE_API_KEY"),
-		username: os.Getenv("ZOOMEYE_USERNAME"),
-		password: os.Getenv("ZOOMEYE_PASSWORD"),
+		username: os.Getenv("ZOOMYEY_USERNAME"),
+		password: os.Getenv("ZOOMYEY_PASSWORD"),
 	}
 }
 
 func (z *ZoomEyeClient) Login() (string, error) {
-
+	client := &http.Client{}
+	path := baseURL + loginPath
 	var token Token
 
-	params := fmt.Sprintf(`{{"username": "%s", "password": "%s"}}`, z.username, z.password)
+	params := fmt.Sprintf(`{"username": "%s", "password": "%s"}`, z.username, z.password)
 
-	resp, err := http.Post(baseURL+loginPath, "application/json", strings.NewReader(params))
+	req, err := http.NewRequest("POST", path, strings.NewReader(params))
+	if err != nil {
+		return "", nil
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&token)
 	if err != nil {
 		return "", err
 	}
 
-	if resp == nil && resp.StatusCode != http.StatusOK {
-		return "", err
-	}
+	z.accessToken = token.AccessToken
 
-	defer resp.Body.Close()
-
-	if err = json.NewDecoder(resp.Body).Decode(&token); err != nil {
-		return "Can't get access token", err
-	}
-	return token.accessToken, nil
+	return token.AccessToken, nil
 }
