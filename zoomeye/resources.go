@@ -2,6 +2,7 @@ package zoomeye
 
 import (
 	"encoding/json"
+	"net/http"
 )
 
 var (
@@ -45,15 +46,25 @@ type QuotaInfo struct {
 }
 
 func (z *ZoomEyeClient) GetResourcesInfo() (*ResourcesInfo, error) {
+	client := &http.Client{}
+	path := baseURL + userInfoPath
 	var resourceInfos ResourcesInfo
 
-	content, err := z.NewRequest("GET", userInfoPath, nil, nil)
+	req, err := http.NewRequest("GET", path, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("API-KEY", z.apiKey)
+	req.Header.Set("Authorization", "JWT "+z.accessToken)
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal(content, &resourceInfos)
-	if err != nil {
+	defer resp.Body.Close()
+
+	if err = json.NewDecoder(resp.Body).Decode(&resourceInfos); err != nil {
 		return nil, err
 	}
 

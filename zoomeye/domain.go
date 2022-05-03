@@ -3,6 +3,7 @@ package zoomeye
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 )
 
 var (
@@ -25,23 +26,27 @@ type List struct {
 
 func (z *ZoomEyeClient) DomainSearch(query string, types, page int) (*DomainInfo, error) {
 	var domainInfo DomainInfo
+	client := &http.Client{}
 
-	path := fmt.Sprintf(domainPath, query, types, page)
+	path := baseURL + fmt.Sprintf(domainPath, query, types, page)
 
-	fmt.Println("Current path : ", path)
-
-	content, err := z.NewRequest("GET", path, nil, nil)
-
+	req, err := http.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal(content, &domainInfo)
+	req.Header.Set("API-KEY", z.apiKey)
+	req.Header.Set("Authorization", "JWT "+z.accessToken)
+
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println("DomainSearch request content ====> ", &domainInfo)
+	defer res.Body.Close()
 
+	if err = json.NewDecoder(res.Body).Decode(&domainInfo); err != nil {
+		return nil, err
+	}
 	return &domainInfo, nil
 }

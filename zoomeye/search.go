@@ -3,42 +3,44 @@ package zoomeye
 import (
 	"encoding/json"
 	"fmt"
-)
-
-var (
-	hostSearchPath = "/host/search?query=%s&page=%d&facets=%s"
-	webSearchPath  = "/web/search?query=%s&page=%d&facets=%s'"
+	"net/http"
 )
 
 type Matchers struct {
+	Code    int                      `json:"code"`
 	Matches []map[string]interface{} `json:"matches"`
-	Facets  string                   `json:"facets"`
+	Facets  interface{}              `json:"facets"`
 	Total   int                      `json:"total"`
 }
 
-// ty 为0则为host search; ty 为1则为web search;
-func (z *ZoomEyeClient) Search(query, facets string, page, ty int) (*Matchers, error) {
+func (z *ZoomEyeClient) Search(query, facets string, page int, ty string) (*Matchers, error) {
+	client := &http.Client{}
 	var matches Matchers
-
 	var path string
 
-	if ty == 0 {
-		path = fmt.Sprintf(hostSearchPath, query, page, facets)
+	if ty == "web" {
+		path = baseURL + fmt.Sprintf(searchAPI, ty, query, page, facets)
 	} else {
-		path = fmt.Sprintf(webSearchPath, query, page, facets)
+		path = baseURL + fmt.Sprintf(searchAPI, ty, query, page, facets)
 	}
 
-	resp, err := z.NewRequest("GET", path, nil, nil)
-
+	req, err := http.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal(resp, &matches)
+	req.Header.Set("API-KEY", z.apiKey)
+	req.Header.Set("Authorization", "JWT "+z.accessToken)
 
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
+	defer resp.Body.Close()
+
+	if err = json.NewDecoder(resp.Body).Decode(&matches); err != nil {
+		return nil, err
+	}
 	return &matches, nil
 }

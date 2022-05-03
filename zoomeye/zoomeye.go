@@ -1,84 +1,67 @@
 package zoomeye
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
-
-	"github.com/google/go-querystring/query"
+	"strings"
 )
 
 var (
 	baseURL    = "https://api.zoomeye.org"
 	historyAPI = "/both/search?history=true&ip=%s"
+	searchAPI  = "/%s/search/?query=%s&page=%d&facets=%s"
+	loginPath  = "/user/login"
 )
 
 type ZoomEyeClient struct {
-	apiKey string
+	username    string
+	password    string
+	accessToken string
+	apiKey      string
 }
 
-func NewZoomEyeClient(apikey string) *ZoomEyeClient {
+type Token struct {
+	accessToken string `json:"access_token"`
+}
+
+func NewZoomEyeClient(username, password, accessToken, apikey string) *ZoomEyeClient {
 	return &ZoomEyeClient{
-		apiKey: apikey,
+		apiKey:      apikey,
+		username:    username,
+		password:    password,
+		accessToken: accessToken,
 	}
 }
 
 func NewEnvZoomEyeClient() *ZoomEyeClient {
 	return &ZoomEyeClient{
-		apiKey: os.Getenv("ZOOMEYE_API_KEY"),
+		apiKey:   os.Getenv("ZOOMEYE_API_KEY"),
+		username: os.Getenv("ZOOMEYE_USERNAME"),
+		password: os.Getenv("ZOOMEYE_PASSWORD"),
 	}
 }
 
-func (z *ZoomEyeClient) newRequest(method string, u *url.URL, params interface{}, payloads io.Reader) ([]byte, error) {
-	client := &http.Client{}
-	qs, err := query.Values(params)
+func (z *ZoomEyeClient) Login() (string, error) {
+
+	var token Token
+
+	params := fmt.Sprintf(`{{"username": "%s", "password": "%s"}}`, z.username, z.password)
+
+	resp, err := http.Post(baseURL+loginPath, "application/json", strings.NewReader(params))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	u.RawQuery = qs.Encode()
-
-	req, err := http.NewRequest(method, u.String(), payloads)
-
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("API-KEY", z.apiKey)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
+	if resp == nil && resp.StatusCode != http.StatusOK {
+		return "", err
 	}
 
 	defer resp.Body.Close()
 
-	if resp != nil && resp.StatusCode != http.StatusOK {
-		return nil, err
+	if err = json.NewDecoder(resp.Body).Decode(&token); err != nil {
+		return "Can't get access token", err
 	}
-
-	return ioutil.ReadAll(resp.Body)
-}
-
-func (z *ZoomEyeClient) NewRequest(method string, path string, params interface{}, payloads io.Reader) ([]byte, error) {
-	u, err := url.Parse(baseURL + path)
-	if err != nil {
-		return nil, err
-	}
-
-	return z.newRequest(method, u, params, payloads)
-}
-
-func (z *ZoomEyeClient) GetHistory(ipaddr string) ([]byte, error) {
-	path := fmt.Sprintf(historyAPI, ipaddr)
-
-	req, err := z.NewRequest("GET", path, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
+	return token.accessToken, nil
 }
