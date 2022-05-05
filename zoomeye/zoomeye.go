@@ -52,7 +52,7 @@ func (z *ZoomEyeClient) Login() (string, error) {
 
 	req, err := http.NewRequest("POST", path, strings.NewReader(params))
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	req.Header.Set("Content-Type", "application/json")

@@ -11,11 +11,11 @@ var (
 )
 
 type DomainInfo struct {
-	Status int           `json:"status"`
-	List   []interface{} `json:"list"`
-	Total  int           `json:"total"`
-	Msg    string        `json:"msg"`
-	Type   int           `json:"type"`
+	Status int    `json:"status"`
+	List   []List `json:"list"`
+	Total  int    `json:"total"`
+	Msg    string `json:"msg"`
+	Type   int    `json:"type"`
 }
 
 type List struct {
