@@ -9,10 +9,11 @@ import (
 )
 
 var (
-	baseURL    = "https://api.zoomeye.org"
-	historyAPI = "/both/search?history=true&ip=%s"
-	searchAPI  = "/%s/search/?query=%s&page=%d&facets=%s"
-	loginPath  = "/user/login"
+	baseURL       = "https://api.zoomeye.org"
+	historyAPI    = "/both/search?history=true&ip=%s"
+	searchHostAPI = "/host/search/?query=%s&page=%d&facets=%s"
+	searchWebAPI  = "/web/search/?query=%s&page=%d&facets=%s"
+	loginPath     = "/user/login"
 )
 
 type ZoomEyeClient struct {
