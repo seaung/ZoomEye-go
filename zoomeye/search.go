@@ -3,27 +3,30 @@ package zoomeye
 import (
 	"encoding/json"
 	"fmt"
+
+	//"io"
 	"net/http"
+	//"github.com/tidwall/gjson"
 )
 
 type Hosts struct {
-	Code      int            `json:"code"`
-	Total     int            `json:"total"`
-	Available int            `json:"available"`
-	Matches   []HostMatchers `json:"matches"`
+	Code      int       `json:"code"`
+	Total     int       `json:"total"`
+	Available int       `json:"available"`
+	Matches   []Matches `json:"matches"`
 	//Facets    interface{}               `json:"facets"`
 }
 
-type HostMatchers struct {
+type Matches struct {
 	Jarm      string           `json:"jarm"`
 	Ico       Ico              `json:"ico"`
 	Txtfile   Txtfile          `json:"txtfile"`
 	IP        string           `json:"ip"`
-	Portinfo  Portinfo         `json:"portinfo"`
+	PortInfo  PortInfo         `json:"portinfo"`
 	Timestamp string           `json:"timestamp"`
-	Geoinfo   Geoinfos         `json:"geoinfo"`
+	Geoinfo   Geoinfo          `json:"geoinfo"`
 	Protocol  Protocol         `json:"protocol"`
-	Honeypot  interface{}      `json:"honeypot"`
+	Honeypot  int              `json:"honeypot"`
 	Whois     map[string]Whois `json:"whois"`
 }
 
@@ -37,23 +40,31 @@ type Txtfile struct {
 	Securitymd5 string `json:"securitymd5"`
 }
 
-type Portinfo struct {
-	Hostname  string      `json:"hostname"`
-	Os        string      `json:"os"`
-	Port      int         `json:"port"`
-	Service   string      `json:"service"`
-	Title     interface{} `json:"title"`
-	Version   string      `json:"version"`
-	Device    string      `json:"device"`
-	Extrainfo string      `json:"extrainfo"`
-	Rdns      string      `json:"rdns"`
-	App       string      `json:"app"`
-	Banner    string      `json:"banner"`
+/*
+"version": "",
+"device": "",
+"extrainfo": "",
+"rdns": "",
+"app": "nginx",
+"banner"
+*/
+type PortInfo struct {
+	Hostname  string   `json:"hostname"`
+	Os        string   `json:"os"`
+	Port      int      `json:"port"`
+	Service   string   `json:"service"`
+	Title     []string `json:"title"`
+	Version   string   `json:"version"`
+	Device    string   `json:"device"`
+	Extrainfo string   `json:"extrainfo"`
+	Rdns      string   `json:"rdns"`
+	App       string   `json:"app"`
+	Banner    string   `json:"banner"`
 }
 
-type Geoinfos struct {
-	Continent      Continents   `json:"continent"`
-	Country        Countrys     `json:"country"`
+type Geoinfo struct {
+	Continent      Continent    `json:"continent"`
+	Country        Country      `json:"country"`
 	BaseStation    string       `json:"base_station"`
 	City           City         `json:"city"`
 	Isp            string       `json:"isp"`
@@ -61,21 +72,74 @@ type Geoinfos struct {
 	Idc            string       `json:"idc"`
 	Location       Location     `json:"location"`
 	Aso            interface{}  `json:"aso"`
-	Asn            interface{}  `json:"asn"`
+	Asn            string       `json:"asn"`
 	Subdivisions   Subdivisions `json:"subdivisions"`
-	PoweredBy      string       `json:"PoweredBy"`
+	PowerdBy       string       `json:"PowerdBy"`
 	Scene          Scene        `json:"scene"`
-	OrganizationCN interface{}  `json:"organization_CN"`
+	OrganizationCN string       `json:"organization_CN"`
 }
 
-type Continents struct {
+/*
+"continent": {
+	"code": "AP",
+	"names": {
+		"en": "Asia",
+		"zh-CN": "亚洲"
+	},
+	"geoname_id": null
+},
+*/
+type Continent struct {
 	Code      string      `json:"code"`
 	Names     Names       `json:"names"`
 	GeonameId interface{} `json:"geoname_id"`
 }
 
-type Countrys struct {
+/*
+"country": {
+	"code": "CN",
+	"names": {
+		"en": "China",
+		"zh-CN": "中国"
+	},
+	"geoname_id": null
+},
+*/
+type Country struct {
 	Code      string      `json:"code"`
+	Names     Names       `json:"names"`
+	GeonameId interface{} `json:"geoname_id"`
+}
+
+type Names struct {
+	En   string `json:"en"`
+	ZhCN string `json:"zh-CN"`
+}
+
+/*
+"city": {
+	"names": {
+		"en": "Beijing",
+		"zh-CN": "北京"
+	},
+	"geoname_id": null
+},
+*/
+type City struct {
+	Names     Names       `json:"name"`
+	GeonameId interface{} `json:"geoname_id"`
+}
+
+/*
+"subdivisions": {
+	"names": {
+		"en": "Beijing",
+		"zh-CN": "北京"
+	},
+	"geoname_id": null
+},
+*/
+type Subdivisions struct {
 	Names     Names       `json:"names"`
 	GeonameId interface{} `json:"geoname_id"`
 }
@@ -102,14 +166,13 @@ type Whois struct {
 	Descr        string       `json:"descr"`
 	Inetnum      string       `json:"inetnum"`
 	IpEnd        string       `json:"ip_end"`
-	IpStart      string       `json:"ip_start"`
 	Irt          []Irt        `json:"irt"`
 	LastModified string       `json:"last_modified"`
 	MntBy        string       `json:"mnt_by"`
 	MntIrt       string       `json:"mnt_irt"`
 	MntLower     string       `json:"mnt_lower"`
 	MntRoutes    string       `json:"mnt_routes"`
-	Netname      string       `json:"netname"`
+	NetName      string       `json:"net_name"`
 	Notify       string       `json:"notify"`
 	Organization Organization `json:"organization"`
 	Person       []Person     `json:"person"`
@@ -120,7 +183,7 @@ type Whois struct {
 }
 
 type Irt struct {
-	AbusMailbox  string `json:"abus_mailbox"`
+	AbusMainbox  string `json:"abus_maxinbox"`
 	Address      string `json:"address"`
 	AdminC       string `json:"admin_c"`
 	Auth         string `json:"auth"`
@@ -156,7 +219,7 @@ type Organization struct {
 }
 
 type Person struct {
-	AbusMailbox  string `json:"abus_mailbox"`
+	AbusMainbox  string `json:"abus_maxinbox"`
 	Address      string `json:"address"`
 	Country      string `json:"country"`
 	Email        string `json:"email"`
@@ -171,7 +234,7 @@ type Person struct {
 }
 
 type Role struct {
-	AbusMailbox  string `json:"abus_mailbox"`
+	AbusMainbox  string `json:"abus_maxinbox"`
 	Address      string `json:"address"`
 	AdminC       string `json:"admin_c"`
 	Country      string `json:"country"`
@@ -218,4 +281,16 @@ func (z *ZoomEyeClient) HostSearch(query, facets string, page int) (*Hosts, erro
 		return nil, err
 	}
 	return &matches, nil
+
+	//content, err := io.ReadAll(resp.Body)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	//return parseResponseJson(content)
 }
+
+//func parseResponseJson(content []byte) (host *Hosts, err error) {
+//	gjson.GetBytes(content, "")
+//	return
+//}
