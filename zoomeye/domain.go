@@ -1,6 +1,7 @@
 package zoomeye
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -50,3 +51,6 @@ func (z *ZoomEyeClient) DomainSearch(query string, types, page int) (*DomainInfo
 	}
 	return &domainInfo, nil
 }
+
+func (z *ZoomEyeClient) DomainSearchWithContext(ctx context.Context, query string, types, page int) {}
+
