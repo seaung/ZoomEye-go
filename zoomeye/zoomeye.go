@@ -27,6 +27,12 @@ type Token struct {
 	AccessToken string `json:"access_token"`
 }
 
+func NewZoomEyeWithAuth(accessToken string) *ZoomEyeClient {
+    return &ZoomEyeClient{
+        accessToken: accessToken,
+    }
+}
+
 func NewZoomEyeClient(username, password, accessToken, apikey string) *ZoomEyeClient {
 	return &ZoomEyeClient{
 		apiKey:      apikey,

@@ -11,11 +11,23 @@ var (
 
 /*
 {
-	"code": 60000,
-	"plan": "developer",
-	"resources": {"search": 80, "stats": 100, "interval": "month"},
-	"user_info": {"name": "", "role": "developer", "expired_at": ""},
-	"quota_info": {"remain_free_quota": 0, "remain_pay_quota": 0, "remain_total_quota": 9}
+    "code": 60000, 
+    "plan": "Free", 
+    "resources": {
+        "search": 3000, 
+        "stats": 0, 
+        "interval": "month"
+    }, 
+    "user_info": {
+        "name": "ec", 
+        "role": "Free", 
+        "expired_at": ""
+    }, 
+    "quota_info": {
+        "remain_free_quota": 3000, 
+        "remain_pay_quota": 0, 
+        "remain_total_quota": 3000
+    }
 }
 */
 

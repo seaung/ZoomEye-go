@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	//"io"
 	"net/http"
-	//"github.com/tidwall/gjson"
 )
 
 type Hosts struct {
@@ -255,6 +253,30 @@ func (z *ZoomEyeClient) WebSearch(query, facets string, page int) (*Hosts, error
 	return &hosts, nil
 }
 
+func (z *ZoomEyeClient) SeachHosts(url, accessToken string) (*Hosts, error) {
+	var matches Hosts
+    client := &http.Client{}
+
+    request, err := http.NewRequest(http.MethodGet, url, nil)
+    if err != nil {
+        return nil, err
+    }
+
+    request.Header.Set("Authorization", "JWT " + accessToken)
+
+	resp, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	if err = json.NewDecoder(resp.Body).Decode(&matches); err != nil {
+		return nil, err
+	}
+	return &matches, nil
+}
+
 func (z *ZoomEyeClient) HostSearch(query, facets string, page int) (*Hosts, error) {
 	client := &http.Client{}
 	var matches Hosts
@@ -281,16 +303,5 @@ func (z *ZoomEyeClient) HostSearch(query, facets string, page int) (*Hosts, erro
 		return nil, err
 	}
 	return &matches, nil
-
-	//content, err := io.ReadAll(resp.Body)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	//return parseResponseJson(content)
 }
 
-//func parseResponseJson(content []byte) (host *Hosts, err error) {
-//	gjson.GetBytes(content, "")
-//	return
-//}
